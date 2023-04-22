@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>缤纷chat</title>
+    <script src="https://cdn.staticfile.org/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/marked/0.8.1/marked.min.js"></script>
+    <link href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/monokai-sublime.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+
+    <style>
+        html,
+        body {
+            background: #fcfcfc;
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        div#bg {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        div#msgbox {
+            background: #ffffff;
+            overflow: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            margin: 50px 0px 120px 0px;
+            z-index: 2;
+            border-radius: 18px;
+            padding: 25px 20px;
+            width: 90%;
+            border: 1px solid rgb(0 0 0 / 3%);
+        }
+
+        div#msgbox::-webkit-scrollbar {
+            width: 5px;
+            height: 10px;
+
+        }
+
+        div#msgbox::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, .05);
+            border-radius: 10px;
+            transition: all 0.5s;
+        }
+
+        .user {
+            background: #5198f1;
+            padding: 0px 15px;
+            border-radius: 12px 0px 12px 12px;
+            color: #fff;
+            margin: 0px 30px 60px auto;
+            width: auto;
+            max-width: 87%;
+        }
+
+        .assistant {
+            background: #f5faff;
+            padding: 0px 15px;
+            border-radius: 0px 12px 12px 12px;
+            margin: 0px auto 60px 30px;
+            width: auto;
+            max-width: 87%;
+        }
+
+        #function_box {
+            width: 100%;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            background: hsla(0, 0%, 100%, 0.5);
+            position: absolute;
+            bottom: 0;
+            border-radius: 18px;
+            z-index: 3;
+        }
+
+        div#chat_box {
+            width: 800px;
+            height: 650px;
+            background: #ffffff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 5px 5px 10px 0px rgb(0 0 0 / 3%);
+            align-items: center;
+            justify-content: center;
+        }
+
+        #input_box {
+            resize: none;
+            outline: none;
+            height: 60px;
+            width: 60%;
+            /* font-size: 1rem; */
+            margin: 20px;
+            padding: 15px 15px 40px 20px;
+            border-radius: 20px;
+            border: 1px solid #ededed;
+            box-shadow: 2px 2px 5px 0px rgb(0 0 0 / 3%);
+        }
+
+        textarea#input_box::-webkit-scrollbar {
+            width: 5px;
+            height: 10px;
+        }
+
+        textarea#input_box::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, .05);
+            border-radius: 10px;
+        }
+
+        div#title_box {
+            width: 100%;
+            height: 200px;
+            background: #a7ceff;
+            position: absolute;
+            top: 0;
+            border-radius: 18px 18px 50% 50%;
+            z-index: 1;
+        }
+
+        .user_imgbox {
+            display: flex;
+            flex-direction: row-reverse;
+            margin: 5px 0px;
+        }
+
+        .ai_imgbox {
+            display: flex;
+            margin: 5px 0px;
+        }
+
+        .chat_img {
+            width: 30px;
+            border-radius: 10px;
+        }
+
+        .user_msgbox_div {
+            margin: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: end;
+            justify-content: center;
+        }
+
+        .ai_msgbox_div {
+            margin: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .select_msgbox {
+            position: fixed;
+            background: #a7ceff;
+            top: 15%;
+            padding: 2px;
+            z-index: 999;
+            border-radius: 18px;
+            width: 250px;
+            height: 300px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            /* display: flex; */
+            display: none;
+            align-items: center;
+            flex-direction: column;
+            border: #ffffff 5px solid;
+            box-shadow: 0px 0px 0px 3000px rgb(0 0 0 / 10%);
+        }
+
+        .select_msgbox::-webkit-scrollbar {
+            width: 5px;
+            height: 10px;
+        }
+
+        .select_msgbox::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, .05);
+            border-radius: 10px;
+        }
+
+        .select_msgbox p {
+            background: #fff;
+            padding: 15px;
+            /* width: 80%; */
+            width: 67%;
+            text-align: center;
+            margin: 5px;
+            border-radius: 15px;
+            box-shadow: 3px 3px 5px 0px rgb(0 0 0 / 5%);
+            border: #e3e3e3 1px solid;
+            cursor: pointer;
+            transition: all 0.5s;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            min-height: 1.5rem;
+        }
+
+        .select_msgbox p:hover {
+            transform: scale(1.038);
+            box-shadow: 0px 2px 5px rgb(0 0 0 / 5%);
+            white-space: normal;
+            overflow: visible;
+            min-height: auto;
+        }
+
+        .select_msgbox_close {
+            background: #f00;
+            position: sticky;
+            color: #fff;
+            top: 5px;
+            margin: 5px 0px 5px auto;
+            width: 20px;
+            text-align: center;
+            height: auto;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.35s;
+        }
+
+        .select_msgbox_close:hover {
+            transform: scale(1.038);
+            box-shadow: 0px 2px 5px rgb(0 0 0 / 5%);
+        }
+
+        div#msgbox_name {
+            background: #fff;
+            padding: 15px;
+            width: 250px;
+            text-align: center;
+            /* margin: 5px; */
+            border-radius: 15px;
+            box-shadow: 3px 3px 5px 0px rgb(0 0 0 / 5%);
+            border: #e3e3e3 1px solid;
+            z-index: 2;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #del_msgbox_name {
+            background: #ffd2d2;
+            padding: 10px 0 10px 10px;
+            width: 20px;
+            text-align: left;
+            margin-right: -5px;
+            border-radius: 15px 0 0 15px;
+            box-shadow: 3px 3px 5px 0px rgb(0 0 0 / 5%);
+            border: #ffbcbc 1px solid;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #add_msgbox_name {
+            background: #d2e6ff;
+            padding: 10px 10px 10px 00px;
+            width: 20px;
+            text-align: right;
+            margin-left: -5px;
+            border-radius: 0 15px 15px 0;
+            box-shadow: 3px 3px 5px 0px rgb(0 0 0 / 5%);
+            border: #96c4fd 1px solid;
+            color: #fff;
+            z-index: 1;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .loading {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: inline-block;
+            position: fixed;
+            border: 3px solid;
+            border-color: #ddd #ddd transparent transparent;
+            animation: rotation 1s linear infinite;
+            z-index: 2;
+        }
+
+        .loading:after,
+        .loading:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            border: 3px solid;
+            border-color: transparent transparent #5198f1 #5198f1;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            -webkit-animation: rotationBack 0.5s linear infinite;
+            animation: rotationBack 0.5s linear infinite;
+            transform-origin: center center;
+        }
+
+        .loading:before {
+            width: 32px;
+            height: 32px;
+            border-color: #ddd #ddd transparent transparent;
+            -webkit-animation: rotation 1.5s linear infinite;
+            animation: rotation 1.5s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes rotationBack {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(-360deg);
+            }
+        }
+
+        #sendmsg {
+            z-index: 1;
+            border: 1px solid #ededed;
+            box-shadow: 2px 2px 5px 0px rgb(0 0 0 / 3%);
+            height: 50px;
+            width: 100%;
+            background: #c0ffc5;
+            text-align: center;
+            line-height: 50px;
+            color: #3c991e;
+            border-radius: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s;
+        }
+
+        #sendmsg:hover {
+            transform: scale(1.04);
+            box-shadow: 0px 2px 5px rgb(0 0 0 / 5%);
+        }
+
+        #sendbox {
+            width: 10%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 1200px) {
+            div#chat_box {
+                width: 85%;
+                height: 90%;
+            }
+
+            #input_box {
+                font-size: 1rem;
+            }
+
+            #input_box {
+                margin: 20px 0px 20px 20px;
+                width: 60%;
+            }
+
+            #sendbox {
+                width: 120px;
+                margin: 0 20px 0 5px;
+            }
+
+            .assistant,
+            .user {
+                max-width: 80%;
+            }
+
+
+        }
+    </style>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0">
+</head>
+
+<body>
+    <div id="bg">
+        <div id="chat_box">
+            <div class="select_msgbox">
+                <div class="select_msgbox_close" onclick="select_msg_close()">X</div>
+            </div>
+            <div id="title_box">
+                <div style="width: 100%;height: 35%;display: flex;align-items: center;justify-content: center;">
+                    <div id="del_msgbox_name" onclick="delmsgboxname()">x</div>
+                    <div id="msgbox_name" onclick="select_msg(this)">右边添加新会话</div>
+                    <div id="add_msgbox_name" onclick="addmsgboxname()">+</div>
+                </div>
+            </div>
+            <div id="msgbox" onscroll="gdt()"></div>
+            <div id="function_box">
+                <textarea type="text" id="input_box" placeholder="在此发送消息给AI"></textarea>
+                <div id="sendbox">
+                    <div class="loading"></div>
+                    <div id="sendmsg" onclick="send_chat()">发送</div>
+                </div>
+                <!-- <button onclick="send_chat()">chat</button>
+                <button onclick="resend_chat()">rechat</button>
+                <button onclick="savemsg()">save</button>
+                <button onclick="loadmsg()">loadmsg</button> -->
+            </div>
+        </div>
+
+
+    </div>
+
+</body>
+<script>
+    var apikey_list = ["FCYG6R2L11R6LV57VP", "FC428LGTT092GLV2T8", "FCAM4V9JHMK669NPHF", 'FCP1QVUV7QXH6NWS4P', 'FCBBN6QHEBGN8JFOHV'];
+
+    var chat_msg = [
+        {
+            "role": "system",
+            "content": "请以markdown的形式返回答案"
+        }
+    ];
+    var chat_msg_bak = [];
+
+
+
+    $(function () {
+        const _date = new Date();
+        const _Month = _date.getMonth() + 1;
+        const _day = _date.getDate();
+        let keytime = _Month + "." + _day;
+        let getkeytime = localStorage.getItem("keytime");
+        if (getkeytime == null) { localStorage.setItem("keytime", keytime) };
+
+
+
+        //开局加载可用的key，判断不存在则为第一次使用，从apikey池的第一位开始使用
+        let _apikey = JSON.parse(localStorage.getItem('apikey'));
+        if (_apikey !== null) {
+            // console.log("当前的key是：" + _apikey.key);
+            // console.log("当前的次数剩余：" + _apikey.num);
+            if (getkeytime !== keytime) {
+                //第二天重置key，从key池第一位开始使用
+
+                api_key(0);
+                localStorage.setItem("keytime", keytime)
+            } else {
+                //根据最后一次使用的key查找在apikey池里面的位置，以减少api的请求
+
+                api_key(apikey_list.indexOf(_apikey.key));
+            }
+
+
+        } else {
+            console.log(api_key(0));
+        }
+
+
+
+        // addmsg();
+        loading_off();
+        loadmsg();
+
+
+
+    });
+
+
+    //可用apikey
+    function api_key(nb) {
+        let key_num = [];
+        if (nb !== -1) {
+            for (let i = nb; i < apikey_list.length; i++) {
+                // console.log(apikey_list[i])
+                let apikey_num = check_key(apikey_list[i]);
+                if (apikey_num !== 0) {
+                    // console.log("可用key：" + apikey_list[i] + ", 可用次数：" + apikey_num);
+                    key_num = [apikey_list[i], apikey_num];
+                    break
+                }
+            }
+        }
+
+        if (key_num.length == 0) {
+            let new_apikey = get_key();
+            apikey_list.push(new_apikey);
+            // console.log(apikey_list);
+            key_num = [new_apikey, 10];
+        }
+        let api_key_info = { "key": key_num[0], "num": key_num[1] };
+        localStorage.setItem("apikey", JSON.stringify(api_key_info));
+
+        return key_num
+    }
+
+
+
+    //获取apikey
+    function get_key() {
+        let apikey = "";
+        $.ajax({
+            url: 'https://api.aigcfun.com/fc/key',
+            type: 'GET',
+            async: false,
+            dataType: 'json',
+            success: function (response) {
+                //console.log(response.errCode);
+                if (response.errCode == 0) {
+                    //console.log(response.data)
+                    apikey = response.data;
+
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                bftip("无法获取API key", "2")
+            }
+
+        });
+        return apikey
+    }
+
+    //console.log("apikey:"+get_key());
+
+
+    //检查apikey剩余的次数
+    function check_key(apikey) {
+        let check_apikey = "";
+        $.ajax({
+            url: 'https://api.aigcfun.com/fc/verify-key?key=' + apikey,
+            type: 'GET',
+            async: false,
+            dataType: 'json',
+            success: function (response) {
+                //console.log(response.errCode);
+                if (response.errCode == 0) {
+                    // console.log(response.data.remain)
+                    check_apikey = response.data.remain;
+                } else {
+                    check_apikey = -1;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                bftip("无法查询API key次数", "2")
+            }
+
+        });
+        return check_apikey;
+    }
+
+    //console.log("还剩："+check_key("FCYG6R2L11R6LV57VP"));
+
+
+    function check_key_num() {
+        let apikey_ = JSON.parse(localStorage.getItem('apikey'));
+        if (apikey_.num == 0) {
+            api_key();
+            apikey_ = JSON.parse(localStorage.getItem('apikey'));
+        }
+        apikey_.num = apikey_.num - 1;
+        let api_key_info = { "key": apikey_.key, "num": apikey_.num };
+        localStorage.setItem("apikey", JSON.stringify(api_key_info));
+    }
+
+    //发送chat
+    function chat(c_msg) {
+        return new Promise((resolve, reject) => {
+            check_key_num();
+            let apikey_ = JSON.parse(localStorage.getItem('apikey'));
+            $.ajax({
+                url: 'https://api.aigcfun.com/api/v1/text?key=' + apikey_.key,
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Referer': 'https://pandapy.com/',
+                    'Accept': 'application/json, text/plain, */*',
+                    'User-Agent': 'Firefox/52.0 (Macintosh 3.6; Tablet; rv:52.0) Gecko/393 Firefox/52.0 en-US'
+                },
+                data: JSON.stringify({
+                    "messages": c_msg,
+                    "tokensLength": 0,
+                    "model": "gpt-3.5-turbo"
+                }),
+                success: function (response) {
+                    // console.log(response.choices[0].text);
+                    // chat_msg.push(response.choices[0].message);
+                    //console.log(chat_msg)
+                    resolve(response);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // console.log(textStatus, errorThrown);
+                    reject(textStatus, errorThrown);
+                    bftip("发送信息失败", "2")
+
+                }
+            });
+        });
+
+    }
+
+    function send_chat() {
+        let msgbox_n = localStorage.getItem('msgbox');
+        if ($("#input_box").val() == "") {
+            // console.log("请输入要提问的问题")
+            bftip("请输入要提问的问题", "0")
+        } else if (msgbox_n !== null) {
+            let chat_messages = $("#input_box").val();
+            // console.log("开启loading动画");
+            loading_on();
+            bftip("发送成功，请稍等", "1")
+            chat_msg.push(
+                {
+                    "role": "user",
+                    "content": chat_messages
+                }
+            )
+            $("#input_box").val("");
+            //chat_msg_bak = chat_msg;
+            for (let msg_i = 0; msg_i < chat_msg.length; msg_i++) {
+                chat_msg_bak.push(chat_msg[msg_i])
+            }
+            savemsg();
+            loadmsg();
+            document.getElementById('msgbox').scrollTop = document.getElementById('msgbox').scrollHeight;
+
+            chat(chat_msg).then((response) => {
+                // console.log(response);
+                if (response.created == undefined) {
+                    let apikey_ = JSON.parse(localStorage.getItem('apikey'));
+                    apikey_.num = apikey_.num + 1;
+                    let api_key_info = { "key": apikey_.key, "num": apikey_.num };
+                    localStorage.setItem("apikey", JSON.stringify(api_key_info));
+                    chat_msg.push({ "role": "assistant", "content": response.choices[0].text });
+
+                } else {
+                    chat_msg.push(response.choices[0].message);
+                    // console.log(chat_msg);
+                }
+                // console.log(response.choices[0].text);
+                // console.log(chat_msg);
+                savemsg();
+                loadmsg();
+                // console.log(chat_msg_bak);
+                // console.log("关闭loading动画");
+                loading_off();
+                document.getElementById('msgbox').scrollTop = document.getElementById('msgbox').scrollHeight;
+
+            }).catch((textStatus, errorThrown) => {
+                console.error(textStatus, errorThrown);
+                bftip("信息发送出错", "2")
+                if (response.created == undefined) {
+                    let apikey_ = JSON.parse(localStorage.getItem('apikey'));
+                    apikey_.num = apikey_.num + 1;
+                    let api_key_info = { "key": apikey_.key, "num": apikey_.num };
+                    localStorage.setItem("apikey", JSON.stringify(api_key_info));
+
+                }
+                // console.log("关闭loading动画");
+                loading_off();
+            });
+
+
+        } else {
+            bftip("无会话窗口", "2")
+
+        }
+
+    }
+
+    function resend_chat() {
+        // console.log("开启loading动画");
+        loading_on();
+        chat(chat_msg_bak).then((response) => {
+            // console.log(response);
+            if (response.created == undefined) {
+                let apikey_ = JSON.parse(localStorage.getItem('apikey'));
+                apikey_.num = apikey_.num + 1;
+                let api_key_info = { "key": apikey_.key, "num": apikey_.num };
+                localStorage.setItem("apikey", JSON.stringify(api_key_info));
+                chat_msg.pop();
+                chat_msg.push({ "role": "assistant", "content": response.choices[0].text });
+
+            } else {
+                chat_msg.pop();
+                chat_msg.push(response.choices[0].message);
+            }
+            // console.log(response.choices[0].text);
+            // console.log(chat_msg);
+            // console.log("关闭loading动画");
+            loading_off();
+        }).catch((textStatus, errorThrown) => {
+            console.error(textStatus, errorThrown);
+            // console.log("关闭loading动画");
+            bftip("重新发送信息失败", "2")
+            loading_off();
+            if (response.created == undefined) {
+                let apikey_ = JSON.parse(localStorage.getItem('apikey'));
+                apikey_.num = apikey_.num + 1;
+                let api_key_info = { "key": apikey_.key, "num": apikey_.num };
+                localStorage.setItem("apikey", JSON.stringify(api_key_info));
+
+            }
+        });
+
+    }
+
+
+    //会话功能
+    function addmsg() {
+        chat_msg = [
+            {
+                "role": "system",
+                "content": "请以markdown的形式返回答案"
+            }
+        ];
+        let msgbox_list = JSON.parse(localStorage.getItem('msgbox_list'));
+        let box_list_data = [];
+        if (msgbox_list == null) {
+            localStorage.setItem("msgbox_list", JSON.stringify(box_list_data));
+        }
+        msgbox_list = JSON.parse(localStorage.getItem('msgbox_list'));
+        // let box_add_num ='';
+
+        let n = 0
+        while (true) {
+            n += 1
+            box_add_num = "bf_" + String(n);
+            let checknum = check_num(msgbox_list, box_add_num)
+            if (checknum == -1) {
+                msgbox_list.push(box_add_num);
+                localStorage.setItem("msgbox_list", JSON.stringify(msgbox_list));
+                localStorage.setItem("msgbox", box_add_num);
+                break
+            }
+
+        }
+
+
+
+        // localStorage.setItem("msgbox_list", JSON.stringify(msgbox_list));
+        // msgbox_list = JSON.parse(localStorage.getItem('msgbox_list'));
+        // console.log(msgbox_list);
+
+        //存储当前窗口号
+        // localStorage.setItem("msgbox", box_add_num);
+
+    }
+    function check_num(list, data) {
+        return list.indexOf(data)
+    }
+
+    function savemsg() {
+        let msgbox_n = localStorage.getItem('msgbox');
+        if (msgbox_n !== null) {
+            localStorage.setItem(msgbox_n, JSON.stringify(chat_msg));
+        } else {
+            bftip("获取不到会话窗口号", "2")
+        }
+
+    }
+
+    function loadmsg() {
+        // $("#msgbox").html("");
+        $("#msgbox").empty();
+        //初始化highlight.js
+        hljs.initHighlighting.called = false;
+        let msgbox_n = localStorage.getItem('msgbox');
+        chat_msg = JSON.parse(localStorage.getItem(msgbox_n));
+        let msgdata = "";
+        if (msgbox_n !== null) {
+            msgdata = JSON.parse(localStorage.getItem(msgbox_n));
+            for (let i = 0; i < msgdata.length; i++) {
+                if (msgdata[i].role !== "system") {
+                    let msgbox_div = document.createElement("div");
+                    let msgdiv = document.createElement("div");
+                    let imgdiv = document.createElement("div");
+                    let u_img = document.createElement("img");
+                    let img_url = "";
+                    if (msgdata[i].role == "user") {
+                        img_url = "https://cdn.staticaly.com/gh/bfkjz/bfkjz.github.io/master/static/img/logo.jpg";
+                        imgdiv.className = "user_imgbox";
+                        msgbox_div.className = "user_msgbox_div";
+                    } else {
+                        img_url = "https://openai.com/favicon.ico";
+                        imgdiv.className = "ai_imgbox";
+                        msgbox_div.className = "ai_msgbox_div";
+
+                    }
+                    u_img.className = "chat_img";
+                    u_img.src = img_url;
+                    imgdiv.appendChild(u_img);
+                    msgdiv.className = msgdata[i].role;
+                    msgdiv.innerHTML = marked(msgdata[i].content);
+                    msgbox_div.appendChild(imgdiv);
+                    msgbox_div.appendChild(msgdiv);
+                    $("#msgbox").append(msgbox_div);
+
+
+                }
+
+            }
+
+
+            let msgbox_item_name = JSON.parse(localStorage.getItem(msgbox_n));
+            if (msgbox_item_name.length == 1) {
+                $("#msgbox_name").text("新会话");
+            } else {
+                $("#msgbox_name").text(msgbox_item_name[1].content);
+            }
+            $("#msgbox_name").attr("data-boxname", msgbox_n);
+
+        } else {
+            bftip("获取不到会话窗口号", "2")
+        }
+
+        //document.getElementById('msgbox').scrollTop = document.getElementById('msgbox').scrollHeight;
+        hljs.initHighlighting();
+
+
+
+    }
+
+    function appendmsg() {
+
+    }
+
+    function loading_on() {
+        $(".loading").eq(0).css('display', 'inline-block');
+        $("#sendmsg").css("display", "none");
+
+    }
+
+    function loading_off() {
+        $(".loading").eq(0).css('display', 'none');
+        $("#sendmsg").css("display", "block");
+
+    }
+
+    function select_msg(htmldata) {
+        // console.log(htmldata.innerText);
+        // console.log(htmldata.dataset.boxname)
+        // document.getElementsByClassName('select_msgbox')[0].innerHTML = ``
+        $(".select_msgbox").eq(0).html(`<div class="select_msgbox_close" onclick="select_msg_close()">X</div>`)
+        let msgbox_list = JSON.parse(localStorage.getItem('msgbox_list'));
+        for (let i = 0; i < msgbox_list.length; i++) {
+            let msgbox_item = document.createElement("p");
+            msgbox_item.setAttribute("data-boxname", msgbox_list[i]);
+            msgbox_item.setAttribute("onclick", "select_item_click(this)");
+            let msgbox_item_name = JSON.parse(localStorage.getItem(msgbox_list[i]));
+            if (msgbox_item_name.length == 1) {
+                msgbox_item.innerText = "新回话";
+            } else {
+                msgbox_item.innerText = msgbox_item_name[1].content;
+            }
+            // $(".select_msgbox").eq(0).append(msgbox_item);
+            document.getElementsByClassName('select_msgbox')[0].appendChild(msgbox_item);
+        }
+
+
+        $(".select_msgbox").eq(0).css("display", "flex");
+
+    }
+    function select_msg_close() {
+        //document.getElementsByClassName("select_msgbox")[0].style.display='none';
+        $(".select_msgbox").eq(0).css("display", "none")
+    }
+    function select_item_click(htmldata) {
+        // console.log(htmldata.dataset.boxname)
+        localStorage.setItem("msgbox", htmldata.dataset.boxname);
+        $(".select_msgbox").eq(0).css("display", "none");
+        loadmsg();
+
+    }
+
+    Array.prototype.removeByValue = function (val) {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i] === val) {
+                this.splice(i, 1);
+                i--;
+            }
+        }
+        return this;
+    }
+
+    function delmsgboxname() {
+        let msgbox_n = localStorage.getItem('msgbox');
+        let msgbox_list = JSON.parse(localStorage.getItem('msgbox_list'));
+        msgbox_list.removeByValue(msgbox_n);
+        localStorage.setItem("msgbox_list", JSON.stringify(msgbox_list));
+        localStorage.removeItem(msgbox_n);
+        if (msgbox_list.length > 0) {
+            localStorage.setItem("msgbox", msgbox_list[0]);
+        } else {
+            localStorage.removeItem("msgbox");
+            $("#msgbox_name").text("右边添加新会话");
+            $("#msgbox_name").attr("data-boxname", "");
+        }
+        loadmsg();
+
+    }
+    function addmsgboxname() {
+        addmsg();
+        savemsg();
+        loadmsg();
+    }
+
+
+    //bftip("消息内容（文本）", "消息类型（数字0-3）");  0：消息、 1：正确、 2：错误、 3：感叹
+
+    function bftip(text, type) {
+        if (document.getElementById("tip_box")) {
+        } else {
+            var tip_box = document.createElement('div');
+            tip_box.id = "tip_box";
+            tip_box.style = "position: fixed;right: 0;top: 20px;/*pointer-events: none;*/z-index: 9998;width: auto;height: auto;display: flex;flex-flow: column-reverse;align-items: flex-end;";
+            document.body.appendChild(tip_box);
+        }
+
+        var tip_msg_box = document.createElement('div');
+        tip_msg_box.style = "transition: all 300ms;padding: 15px;height: 25px;width: 0px;/* width: 225px; */display: flex;align-items: center;justify-content: center;background: #fff;border-radius: 14px;margin: 5px;-moz-box-shadow: 0px 1px 4px #c9c9c9;-webkit-box-shadow: 0px 1px 4px #c9c9c9;box-shadow: 0px 1px 4px #c9c9c9;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;margin: 10px;z-index: 9999;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;";
+        tip_msg_box.setAttribute("onclick", "javascript:this.parentNode.removeChild(this);");
+        tip_msg_box.title = "点击关闭";
+        var tip_msg = document.createElement('div');
+        tip_msg.style = "width: 225px;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;text-align: center;";
+        tip_msg.innerText = text;
+
+        if (type == "1") {
+            tip_msg_box.innerHTML = "✔️  " + tip_msg.innerText;
+        }
+        if (type == "2") {
+            tip_msg_box.innerHTML = "❌  " + tip_msg.innerText;
+        }
+        if (type == "3") {
+            tip_msg_box.innerHTML = "❗  " + tip_msg.innerText;
+        }
+        if (type == "0") {
+            tip_msg_box.innerHTML = "💬  " + tip_msg.innerText;
+        }
+
+        document.getElementById('tip_box').appendChild(tip_msg_box);
+        window.setTimeout(function () { tip_msg_box.style = "transition: all 300ms;padding: 15px;height: 25px;width: 225px;display: flex;align-items: center;justify-content: center;background: #fff;border-radius: 14px;margin: 5px;-moz-box-shadow: 0px 1px 4px #c9c9c9;-webkit-box-shadow: 0px 1px 4px #c9c9c9;box-shadow: 0px 1px 4px #c9c9c9;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;margin: 10px;z-index: 9999;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;"; }, 0);
+        window.setTimeout(function () { tip_msg_box.style = "transition: all 300ms;padding: 15px;height: 25px;width: 0px;display: flex;align-items: center;justify-content: center;background: #fff;border-radius: 14px;margin: 5px;-moz-box-shadow: 0px 1px 4px #c9c9c9;-webkit-box-shadow: 0px 1px 4px #c9c9c9;box-shadow: 0px 1px 4px #c9c9c9;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;margin: 10px;z-index: 9999;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;"; }, 2500);
+        window.setTimeout(function () { document.getElementById('tip_box').removeChild(tip_msg_box); }, 2750);
+
+
+    };
+    function gdt() {
+        $("#msgbox::-webkit-scrollbar-thumb").css("background-color","rgb(255 255 255 / 5%)");
+        let thumb = $('div::-webkit-scrollbar-thumb');
+        setTimeout(function () {
+            $("#msgbox").css("div#msgbox::-webkit-scrollbar-thumb","rgb(255 255 255 / 0%)")
+        }, 3000);
+    }
+
+
+
+
+
+
+</script>
+
+
+
+</html>
