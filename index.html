@@ -415,7 +415,7 @@
                     <div id="add_msgbox_name" onclick="addmsgboxname()">+</div>
                 </div>
             </div>
-            <div id="msgbox" onscroll="gdt()"></div>
+            <div id="msgbox"></div>
             <div id="function_box">
                 <textarea type="text" id="input_box" placeholder="在此发送消息给AI"></textarea>
                 <div id="sendbox">
@@ -968,16 +968,6 @@
 
 
     };
-    function gdt() {
-        $("#msgbox::-webkit-scrollbar-thumb").css("background-color","rgb(255 255 255 / 5%)");
-        let thumb = $('div::-webkit-scrollbar-thumb');
-        setTimeout(function () {
-            $("#msgbox").css("div#msgbox::-webkit-scrollbar-thumb","rgb(255 255 255 / 0%)")
-        }, 3000);
-    }
-
-
-
 
 
 
